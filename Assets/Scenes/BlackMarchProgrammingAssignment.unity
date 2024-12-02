@@ -297,9 +297,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '
-
-'
+  m_text: 'Position: (N/A)'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -901,7 +899,7 @@ PrefabInstance:
     - target: {fileID: 2917172295885111994, guid: 17c83b59088c7254492f9b7d2132437e,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4699941433839802810, guid: 17c83b59088c7254492f9b7d2132437e,
         type: 3}
