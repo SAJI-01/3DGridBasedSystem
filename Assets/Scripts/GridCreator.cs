@@ -1,41 +1,39 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using UnityEngine;
 
 
 public class GridCreator : MonoBehaviour
 {
-    [SerializeField] private GameObject cubePrefab;
-    [SerializeField] private GameObject highlightGameObject;
+    // Reference to the UIManager script
+    [SerializeField] private UIManager uiManager;
+    [SerializeField] private GameObject tilePrefab;
+    [SerializeField] private GameObject highlightEffectGameObject;
     [SerializeField] private int gridSpacing = 1;
-    [SerializeField] private TextMeshProUGUI positionText;
     [SerializeField] private float highlightPositionY = 0.51f;
-    private GameObject[,] grid;
-    private List<GameObject> gridTiles;
+    public GameObject[,] grid;
+    public List<GameObject> gridTiles;
 
-    [Space] [Header("Ensure that X,Z Size Match the ObstacleManager & ObstacleScriptableObject")] [SerializeField]
-    public int xSize = 10;
-
+    [Space] 
+    [Header("Ensure that X,Z Size Match the ObstacleManager & ObstacleScriptableObject")] 
+    [SerializeField] public int xSize = 10;
     [SerializeField] public int zSize = 10;
 
+    public float nodeDiameter = 1f; // Define node diameter
 
     private void Start()
     {
-        highlightGameObject.SetActive(false);
+        // Ensure that the highlight effect is disabled so visible only when needed
+        highlightEffectGameObject.SetActive(false);
         CreateGrid();
     }
     
-
+    // Create the grid of tiles
     private void CreateGrid()
     {
-        if (gridTiles == null)
-            gridTiles = new List<GameObject>();
         
+        gridTiles ??= new List<GameObject>();
         grid = new GameObject[xSize, zSize];  
-
-
         EnsureNoDuplicateTiles();
 
         for (var x = 0; x < xSize; x++)
@@ -43,22 +41,28 @@ public class GridCreator : MonoBehaviour
             for (var z = 0; z < zSize; z++)
             {
                 var position = new Vector3(x * gridSpacing, 0, z * gridSpacing);
-                var cube = Instantiate(cubePrefab, position, Quaternion.identity);
-                cube.AddComponent<BoxCollider>();
-                cube.AddComponent<GridTile>().SetPosition(x, z);
-                cube.transform.name = $"Grid Pos: ({x}, {z})";
-                cube.transform.SetParent(transform);
+                var gridTile = Instantiate(tilePrefab, position, Quaternion.identity);
+                var boxCollider = gridTile.AddComponent<BoxCollider>();
+                if (boxCollider == null)
+                {
+                    Debug.LogError("Failed to add BoxCollider to the tile.");
+                }
+                gridTile.AddComponent<GridTile>().SetPosition(x, z);
+                // Settings the name of the tile to its position
+                gridTile.transform.name = $"Grid Pos: ({x}, {z})";
+                gridTile.transform.SetParent(transform);
 
-                if (grid == null) continue;
-                grid[x, z] = cube;
-                gridTiles.Add(cube);
+                grid[x, z] = gridTile;
+                // Add the tile to the list
+                gridTiles.Add(gridTile); 
             }
         }
     }
 
+    // Get the list of grid tiles and Clear it
     private void EnsureNoDuplicateTiles()
     {
-        foreach (var tile in gridTiles.ToList())
+        foreach (var tile in gridTiles)
         {
             if (tile != null)
                 DestroyImmediate(tile);
@@ -69,37 +73,56 @@ public class GridCreator : MonoBehaviour
 
     private void Update()
     {
-        RayCastOnMouseClick();
+        RaycastOnMouseClick();
     }
 
-    private void RayCastOnMouseClick()
+    //raycasting to detect the grid tile that was clicked
+    private void RaycastOnMouseClick()
     {
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        if (Physics.Raycast(ray, out var hit))
+        
+        if (Physics.Raycast(ray, out var hit)) 
         {
             var currentTile = hit.collider.GetComponent<GridTile>();
-
-            if (currentTile != null)
-            {
-                highlightGameObject.SetActive(true);
-                highlightGameObject.transform.position = new Vector3(currentTile.transform.position.x, highlightPositionY, currentTile.transform.position.z);
-                positionText.text = $"Position: ({currentTile.GridX}, {currentTile.GridZ})";
-            }
-            else
-            {
-                WhenNotHitTiles();
-            }
+            RaycastProcess(currentTile, currentTile != null);
         }
         else
         {
-            WhenNotHitTiles();
+            RaycastProcess(null);
         }
     }
 
-    private void WhenNotHitTiles()
+    // Gets the current tile, sets the highlight effect and the position text
+    private void RaycastProcess(GridTile currentTile, bool hit = false)
     {
-        positionText.text = "Position: (N/A)";
-        highlightGameObject.SetActive(false);
+        highlightEffectGameObject.SetActive(hit);
+        if (uiManager == null || !hit) return;
+        highlightEffectGameObject.transform.position = new Vector3(currentTile.transform.position.x, highlightPositionY, currentTile.transform.position.z);
+        uiManager.SetPositionText(currentTile.GridX, currentTile.GridZ);
+    }
+
+    // Method to get neighboring tiles
+    public List<GridTile> GetNeighbours(GridTile tile)
+    {
+        List<GridTile> neighbours = new List<GridTile>();
+
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int z = -1; z <= 1; z++)
+            {
+                if (x == 0 && z == 0)
+                    continue;
+
+                int checkX = tile.GridX + x;
+                int checkZ = tile.GridZ + z;
+
+                if (checkX >= 0 && checkX < xSize && checkZ >= 0 && checkZ < zSize)
+                {
+                    neighbours.Add(grid[checkX, checkZ].GetComponent<GridTile>());
+                }
+            }
+        }
+
+        return neighbours;
     }
 }
