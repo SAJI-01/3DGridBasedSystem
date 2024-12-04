@@ -1,7 +1,5 @@
 using TMPro;
-using TMPro.Examples;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class UIManager : MonoBehaviour
 {
@@ -11,6 +9,7 @@ public class UIManager : MonoBehaviour
 
     public void SetPositionText(int x, int z)
     {
+        if (positionText == null) return;
         positionText.text = $"Position : ( X:{x}, Z:{z})";
     }
 } 

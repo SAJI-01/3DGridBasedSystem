@@ -79,7 +79,10 @@ public class EnemyAI : MonoBehaviour, IAI
 
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
         transform.LookAt(targetPosition);
-        uiManager.enemyText.transform.rotation = Camera.main.transform.rotation;
+        if (uiManager != null && uiManager.enemyText != null)
+        {
+            uiManager.enemyText.transform.rotation = Camera.main.transform.rotation;
+        }
 
         if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
@@ -92,6 +95,7 @@ public class EnemyAI : MonoBehaviour, IAI
     //Play animation for enemy movement
     public void HandleAnimation()
     {
+        if (animator == null) return;
         animator.SetBool(IsMoving, isMoving);
     }
     

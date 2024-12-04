@@ -327,11 +327,11 @@ MonoBehaviour:
   gridCreator: {fileID: 1435129455}
   obstacleScriptableObject: {fileID: 11400000, guid: 67d987cae025dff4890945829c4fec06,
     type: 2}
-  obstaclePrefab: {fileID: 5056879380039294236, guid: 6032ef0370a7d2541b2a2e8facb9f954,
-    type: 3}
   xSize: 10
   zSize: 10
   gridSpacing: 1
+  obstaclePrefab: {fileID: 1895166500308898167, guid: a995d882f18be394fb2fdee1536af747,
+    type: 3}
 --- !u!4 &58157034
 Transform:
   m_ObjectHideFlags: 0

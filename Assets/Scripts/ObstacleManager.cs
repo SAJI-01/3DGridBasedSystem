@@ -4,12 +4,13 @@ using UnityEngine;
 public class ObstacleManager : MonoBehaviour
 {
     [SerializeField] private GridCreator gridCreator;
-    public ObstacleScriptableObject obstacleScriptableObject;
-    public GameObject obstaclePrefab;
+    [SerializeField] private ObstacleScriptableObject obstacleScriptableObject;
     [Header("Ensure that X,Z Size Match the ObstacleScriptableObject & GridCreator")]
     [SerializeField] private int xSize = 10;
     [SerializeField] private int zSize = 10;
     public int gridSpacing = 1;
+    [SerializeField] private GameObject obstaclePrefab;
+    
     
     private GameObject[,] obstacles;
 
@@ -46,18 +47,24 @@ public class ObstacleManager : MonoBehaviour
                 {
                     Vector3Int obstaclePosition = new Vector3Int(x * gridSpacing, 1, z * gridSpacing);
                     obstacles[x, z] = Instantiate(obstaclePrefab, obstaclePosition, Quaternion.identity, transform);
-                    obstacles[x, z].GetComponent<Renderer>().material.color = Color.red;
                 }
             }
         }
     }
 
+    
+    // Get the tile at the specified grid position (x, z)
     private GridTile GetTileAt(int x, int z)
     {
-        var tile = gridCreator.gridTiles
-            .Select(gridTile => gridTile.GetComponent<GridTile>())
-            .FirstOrDefault(gridTile => gridTile.GridX == x && gridTile.GridZ == z);
-        return tile;
+        foreach (var gridTile in gridCreator.gridTiles)
+        {
+            var tile = gridTile.GetComponent<GridTile>();
+            if (tile.GridX == x && tile.GridZ == z)
+            {
+                return tile;
+            }
+        }
+        return null;
     }
     
     //Ensure that the obstacles are cleared before generating new ones

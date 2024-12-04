@@ -10,7 +10,7 @@ public class GridCharacter : MonoBehaviour
     
     private List<GridTile> currentPath;
     private int currentPathIndex;
-    public bool isMoving;
+    [HideInInspector] public bool isMoving;
     private static readonly int IsMoving = Animator.StringToHash("isMoving");
     
     
@@ -27,6 +27,7 @@ public class GridCharacter : MonoBehaviour
     //set bool isMoving to true so the player moving animation can be played.
     private void HandleAnimation()
     {
+        if(animator == null) return;
         animator.SetBool(IsMoving, isMoving);
     }
 
@@ -72,7 +73,11 @@ public class GridCharacter : MonoBehaviour
         // Move the character towards the target position 
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
         transform.LookAt(targetPosition);
-        uiManager.playerText.transform.rotation = Camera.main.transform.rotation;
+        
+        if (uiManager != null && uiManager.playerText != null)
+        {
+            uiManager.playerText.transform.rotation = Camera.main.transform.rotation;
+        }
         
 
         // If the character is close enough to the target position, move to the next path index
