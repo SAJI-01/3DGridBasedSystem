@@ -1,6 +1,7 @@
 public interface IAI
 {
-    void Initialize();
+    void Initialization();
     void PathProcess();
-    void HandleMove();
+    void HandleMovement();
+    void HandleAnimation();
 }

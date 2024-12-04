@@ -1,15 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 
 public class EnemyAI : MonoBehaviour, IAI
 {
+    [SerializeField] private Animator animator;
+    [SerializeField] private UIManager uiManager;
     [SerializeField] private PathfindingSystem pathfinding;
     [SerializeField] private GridCreator gridCreator;
     [SerializeField] private GridCharacter gridCharacter;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Transform playerTransform;
 
+    private static readonly int IsMoving = Animator.StringToHash("isMoving");
     private List<GridTile> currentPath;
     private int currentPathIndex;
     private bool isMoving;
@@ -19,16 +21,13 @@ public class EnemyAI : MonoBehaviour, IAI
     private void Update()
     {
         PathProcess();
-
-        // If the player is not moving, the enemy can move
-        if (!gridCharacter.isMoving)
-        {
-            HandleMove();
-        }
+        HandleMovement();
+        HandleAnimation();
+        
     }
 
     //Get the player's position 
-    public void Initialize()
+    public void Initialization()
     {
         if (playerTransform == null)
             playerTransform = gridCharacter.transform;
@@ -40,7 +39,7 @@ public class EnemyAI : MonoBehaviour, IAI
     //If the player is moving, distance between player and last known position is greater. Find path to player
     public void PathProcess()
     {
-        if (!isMoving && Vector3.Distance(playerTransform.position, lastKnownPlayerPosition) > 0.1f)
+        if (!isMoving && !gridCharacter.isMoving && Vector3.Distance(playerTransform.position, lastKnownPlayerPosition) > 0.1f)
         {
             lastKnownPlayerPosition = playerTransform.position;
             FindPathToPlayer();
@@ -70,33 +69,43 @@ public class EnemyAI : MonoBehaviour, IAI
         }
     }
 
-    public void HandleMove()
+    public void HandleMovement()
     {
-        if (!isMoving || currentPath == null || currentPathIndex >= currentPath.Count) return;
-        //Move the enemy to the next tile in the path and maintain the y position
+        if (gridCharacter.isMoving || !isMoving || currentPath == null || currentPathIndex >= currentPath.Count) return;
+
+        // Move the enemy to the next tile in the path and maintain the y position
         var targetPosition = currentPath[currentPathIndex].transform.position;
         targetPosition.y = transform.position.y;
 
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+        transform.LookAt(targetPosition);
+        uiManager.enemyText.transform.rotation = Camera.main.transform.rotation;
 
         if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
             UpdateEnemyObstacle();
             currentPathIndex++;
-            if (currentPathIndex >= currentPath.Count) 
-                isMoving = false;
+            isMoving = currentPathIndex < currentPath.Count;
         }
     }
     
+    //Play animation for enemy movement
+    public void HandleAnimation()
+    {
+        animator.SetBool(IsMoving, isMoving);
+    }
+    
+    
+   //Get the adjacent tiles of the player 
     private List<GridTile> GetAdjacentTiles(GridTile playerTile)
     {
         Vector2Int[] directions = 
-        {
-            new(0, 1),  //right
-            new(1, 0),  //up
-            new(0, -1), //left
-            new(-1, 0)  //down
-        };
+            {
+                new Vector2Int(0, 1),  // right
+                new Vector2Int(1, 0),  // up
+                new Vector2Int(0, -1), // left
+                new Vector2Int(-1, 0)  // down
+            };
 
         List<GridTile> adjacentTiles = new List<GridTile>();
         
