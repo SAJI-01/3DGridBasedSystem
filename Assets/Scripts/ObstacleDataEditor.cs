@@ -73,8 +73,12 @@ public class ObstacleDataEditor : Editor
     {
         if (GUI.changed)
         {
-            EditorUtility.SetDirty(data);  
+            EditorUtility.SetDirty(data);
             obstacleManager?.GenerateObstacles();
+
+            data.SaveToSerializedArray();
+            EditorUtility.SetDirty(data);
+            AssetDatabase.SaveAssets();
         }
     }
 }

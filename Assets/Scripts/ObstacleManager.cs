@@ -23,8 +23,13 @@ public class ObstacleManager : MonoBehaviour
     // Generate obstacles when the script is enabled
     private void OnEnable()
     {
-        if (obstacleScriptableObject != null) GenerateObstacles();
+        if (obstacleScriptableObject != null)
+        {
+            obstacleScriptableObject.LoadFromSerializedArray();
+            GenerateObstacles();
+        }
     }
+
 
     // Generate obstacles based on the ObstacleScriptableObject data
     public void GenerateObstacles()
