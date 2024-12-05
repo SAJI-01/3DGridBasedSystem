@@ -325,7 +325,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridCreator: {fileID: 1435129455}
-  obstacleData: {fileID: 0}
+  obstacleData: {fileID: 11400000, guid: 67d987cae025dff4890945829c4fec06, type: 2}
   obstaclePrefab: {fileID: 1895166500308898167, guid: a995d882f18be394fb2fdee1536af747,
     type: 3}
   gridSpacing: 1
