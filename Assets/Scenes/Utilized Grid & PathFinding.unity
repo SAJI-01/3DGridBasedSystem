@@ -325,13 +325,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridCreator: {fileID: 1435129455}
-  obstacleScriptableObject: {fileID: 11400000, guid: 67d987cae025dff4890945829c4fec06,
-    type: 2}
-  xSize: 10
-  zSize: 10
-  gridSpacing: 1
+  obstacleData: {fileID: 0}
   obstaclePrefab: {fileID: 1895166500308898167, guid: a995d882f18be394fb2fdee1536af747,
     type: 3}
+  gridSpacing: 1
 --- !u!4 &58157034
 Transform:
   m_ObjectHideFlags: 0
@@ -908,8 +905,8 @@ Camera:
   m_GameObject: {fileID: 777416655}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.1509434, g: 0.1509434, b: 0.1509434, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

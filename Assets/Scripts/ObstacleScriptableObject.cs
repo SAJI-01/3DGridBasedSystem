@@ -1,73 +1,83 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [CreateAssetMenu(fileName = "ObstacleData", menuName = "Grid/ObstacleData")]
 public class ObstacleScriptableObject : ScriptableObject
 {
-    [Header("Ensure that X,Z Size Match the ObstacleManager & GridCreator")]
+    [Header("Grid Size")]
     [SerializeField] private int xSize = 10;
     [SerializeField] private int zSize = 10;
-    [System.NonSerialized] public bool[,] obstaclesToggles;
+    
+    public int XSize => xSize;
+    public int ZSize => zSize;
 
-    public bool[] serializedToggles;
+    [SerializeField] private bool[] serializedObstacles;
+    [System.NonSerialized] public bool[,] obstacleGrid;
+
+    private void OnEnable()
+    {
+        InitializeGrid();
+        LoadFromSerialized();
+    }
 
     private void OnValidate()
     {
         xSize = Mathf.Max(1, xSize);
         zSize = Mathf.Max(1, zSize);
+        InitializeGrid();
+        LoadFromSerialized();
+    }
 
-        if (obstaclesToggles == null || obstaclesToggles.GetLength(0) != xSize || obstaclesToggles.GetLength(1) != zSize)
+    private void InitializeGrid()
+    {
+        if (obstacleGrid == null || obstacleGrid.GetLength(0) != xSize || obstacleGrid.GetLength(1) != zSize)
         {
-            ResizeArray();
+            obstacleGrid = new bool[xSize, zSize];
         }
 
-        if (serializedToggles == null || serializedToggles.Length != xSize * zSize)
+        if (serializedObstacles == null || serializedObstacles.Length != xSize * zSize)
         {
-            serializedToggles = new bool[xSize * zSize];
+            serializedObstacles = new bool[xSize * zSize];
         }
     }
 
-    private void ResizeArray()
+    public void SaveToSerialized()
     {
-        bool[,] newObstacles = new bool[xSize, zSize];
-
-        if (obstaclesToggles != null)
+        if (obstacleGrid == null) return;
+        
+        for (int x = 0; x < xSize; x++)
         {
-            int minX = Mathf.Min(obstaclesToggles.GetLength(0), xSize);
-            int minZ = Mathf.Min(obstaclesToggles.GetLength(1), zSize);
-
-            for (int x = 0; x < minX; x++)
+            for (int z = 0; z < zSize; z++)
             {
-                for (int z = 0; z < minZ; z++)
+                int index = x * zSize + z;
+                if (index < serializedObstacles.Length)
                 {
-                    newObstacles[x, z] = obstaclesToggles[x, z];
+                    serializedObstacles[index] = obstacleGrid[x, z];
                 }
             }
         }
 
-        obstaclesToggles = newObstacles;
+        #if UNITY_EDITOR
+        EditorUtility.SetDirty(this);
+        AssetDatabase.SaveAssets();
+        #endif
     }
 
-    public void SaveToSerializedArray()
+    public void LoadFromSerialized()
     {
+        if (serializedObstacles == null || obstacleGrid == null) return;
+        
         for (int x = 0; x < xSize; x++)
         {
             for (int z = 0; z < zSize; z++)
             {
-                serializedToggles[x * zSize + z] = obstaclesToggles[x, z];
-            }
-        }
-    }
-
-    public void LoadFromSerializedArray()
-    {
-        if (serializedToggles == null || serializedToggles.Length != xSize * zSize)
-            return;
-
-        for (int x = 0; x < xSize; x++)
-        {
-            for (int z = 0; z < zSize; z++)
-            {
-                obstaclesToggles[x, z] = serializedToggles[x * zSize + z];
+                int index = x * zSize + z;
+                if (index < serializedObstacles.Length)
+                {
+                    obstacleGrid[x, z] = serializedObstacles[index];
+                }
             }
         }
     }

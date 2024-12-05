@@ -1,89 +1,185 @@
-using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
+//[ExecuteAlways]
 public class ObstacleManager : MonoBehaviour
 {
     [SerializeField] private GridCreator gridCreator;
-    [SerializeField] private ObstacleScriptableObject obstacleScriptableObject;
-    [Header("Ensure that X,Z Size Match the ObstacleScriptableObject & GridCreator")]
-    [SerializeField] private int xSize = 10;
-    [SerializeField] private int zSize = 10;
-    public int gridSpacing = 1;
+    [SerializeField] private ObstacleScriptableObject obstacleData;
     [SerializeField] private GameObject obstaclePrefab;
+    [SerializeField] private int gridSpacing = 1;
     
-    
-    private GameObject[,] obstacles;
+    private GameObject[,] obstacleInstances;
+    private bool needsRegeneration = false;
 
-    
-    private void Awake()
-    {
-        obstacles = new GameObject[xSize, zSize];
-    }
-
-    // Generate obstacles when the script is enabled
     private void OnEnable()
     {
-        if (obstacleScriptableObject != null)
+        if (obstacleData != null)
         {
-            obstacleScriptableObject.LoadFromSerializedArray();
-            GenerateObstacles();
+            InitializeObstacleArray();
+            RegenerateObstacles();
         }
     }
 
-
-    // Generate obstacles based on the ObstacleScriptableObject data
-    public void GenerateObstacles()
+    private void Update()
     {
-        ClearObstacles();
-
-        //null check for obstacles and obstacleScriptableObject and its obstacles
-        if (obstacles == null || obstacleScriptableObject == null || obstacleScriptableObject.obstaclesToggles == null) return;
-
-        for (int x = 0; x < xSize; x++)
+        if (needsRegeneration)
         {
-            for (int z = 0; z < zSize; z++)
-            {
-                // Get the tile at the current position and set the obstacle
-                var currentGridTile = GetTileAt(x, z);
-                if (currentGridTile != null)
-                    currentGridTile.SetObstacle(obstacleScriptableObject.obstaclesToggles[x, z]);
+            RegenerateObstacles();
+            needsRegeneration = false;
+        }
+    }
 
-                if (obstacleScriptableObject.obstaclesToggles[x, z])
-                {
-                    Vector3Int obstaclePosition = new Vector3Int(x * gridSpacing, 1, z * gridSpacing);
-                    obstacles[x, z] = Instantiate(obstaclePrefab, obstaclePosition, Quaternion.identity, transform);
-                }
+    private void OnValidate()
+    {
+        if (obstacleData != null)
+        {
+            InitializeObstacleArray();
+            needsRegeneration = true;
+        }
+    }
+
+    private void OnDisable()
+    {
+        ClearAllObstacles();
+    }
+
+    private void InitializeObstacleArray()
+    {
+        if (obstacleInstances == null || 
+            obstacleInstances.GetLength(0) != obstacleData.XSize || 
+            obstacleInstances.GetLength(1) != obstacleData.ZSize)
+        {
+            ClearAllObstacles();
+            obstacleInstances = new GameObject[obstacleData.XSize, obstacleData.ZSize];
+        }
+    }
+
+    public void RegenerateObstacles()
+    {
+        if (!IsSetupValid()) return;
+        
+        if (!Application.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            // Check if we are in prefab stage editor
+            bool isInPrefabStage = false;
+            #if UNITY_EDITOR
+            isInPrefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null; 
+            #endif
+            
+            if (!isInPrefabStage)
+            {
+                EditorApplication.delayCall += () => {
+                    if (this != null)
+                    {
+                        GenerateObstacles();
+                    }
+                };
+                return;
+            }
+        }
+        
+        GenerateObstacles();
+    }
+
+    private void GenerateObstacles()
+    {
+        if (!IsSetupValid()) return;
+
+        ClearAllObstacles();
+        
+        for (int x = 0; x < obstacleData.XSize; x++)
+        {
+            for (int z = 0; z < obstacleData.ZSize; z++)
+            {
+                UpdateObstacleAt(x, z);
             }
         }
     }
 
-    
-    // Get the tile at the specified grid position (x, z)
+    private bool IsSetupValid()
+    {
+        return obstacleData != null && 
+               obstaclePrefab != null && 
+               gridCreator != null && 
+               obstacleData.obstacleGrid != null;
+    }
+
+    private void UpdateObstacleAt(int x, int z)
+    {
+        var gridTile = GetTileAt(x, z);
+        if (gridTile != null)
+        {
+            gridTile.SetObstacle(obstacleData.obstacleGrid[x, z]);
+        }
+
+        if (obstacleData.obstacleGrid[x, z])
+        {
+            CreateObstacleAt(x, z);
+        }
+    }
+
+    private void CreateObstacleAt(int x, int z)
+    {
+        Vector3 position = new Vector3(x * gridSpacing, 1f, z * gridSpacing);
+        obstacleInstances[x, z] = Instantiate(obstaclePrefab, position, Quaternion.identity, transform);
+        obstacleInstances[x, z].name = $"Obstacle ({x}, {z})";
+    }
+
     private GridTile GetTileAt(int x, int z)
     {
-        foreach (var gridTile in gridCreator.gridTiles)
+        if (gridCreator?.gridTiles == null) return null;
+        
+        foreach (var tileObject in gridCreator.gridTiles)
         {
-            var tile = gridTile.GetComponent<GridTile>();
-            if (tile.GridX == x && tile.GridZ == z)
+            if (tileObject == null) continue;
+            
+            var tile = tileObject.GetComponent<GridTile>();
+            if (tile != null && tile.GridX == x && tile.GridZ == z)
             {
                 return tile;
             }
         }
         return null;
     }
-    
-    //Ensure that the obstacles are cleared before generating new ones
-    private void ClearObstacles()
+
+    private void ClearAllObstacles()
     {
-        for (int x = 0; x < xSize; x++)
+        // First, clear the tracked obstacles
+        if (obstacleInstances != null)
         {
-            for (int z = 0; z < zSize; z++)
+            for (int x = 0; x < obstacleInstances.GetLength(0); x++)
             {
-                if (obstacles[x, z] != null)
+                for (int z = 0; z < obstacleInstances.GetLength(1); z++)
                 {
-                    Destroy(obstacles[x, z]);
-                    obstacles[x, z] = null;
+                    if (obstacleInstances[x, z] != null)
+                    {
+                        if (Application.isPlaying)
+                        {
+                            Destroy(obstacleInstances[x, z]);
+                        }
+                        else
+                        {
+                            DestroyImmediate(obstacleInstances[x, z]);
+                        }
+                        obstacleInstances[x, z] = null;
+                    }
                 }
+            }
+        }
+        
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            var child = transform.GetChild(i);
+            if (Application.isPlaying)
+            {
+                Destroy(child.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(child.gameObject);
             }
         }
     }

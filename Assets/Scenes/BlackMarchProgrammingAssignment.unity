@@ -200,7 +200,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f3ccc2c97b373fa42bcf4916f5ef174f, type: 2}
+  - {fileID: 2100000, guid: 104875dbf786be442841c7d0e2dcb619, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -239,7 +239,7 @@ Transform:
   m_GameObject: {fileID: 25100360}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 4, y: 1, z: 5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -276,13 +276,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridCreator: {fileID: 1435129455}
-  obstacleScriptableObject: {fileID: 11400000, guid: 67d987cae025dff4890945829c4fec06,
-    type: 2}
-  xSize: 10
-  zSize: 10
-  gridSpacing: 1
+  obstacleData: {fileID: 11400000, guid: 67d987cae025dff4890945829c4fec06, type: 2}
   obstaclePrefab: {fileID: 5056879380039294236, guid: 6032ef0370a7d2541b2a2e8facb9f954,
     type: 3}
+  gridSpacing: 1
 --- !u!4 &58157034
 Transform:
   m_ObjectHideFlags: 0
@@ -768,7 +765,7 @@ Transform:
   m_GameObject: {fileID: 675696079}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8, y: 1, z: 8}
+  m_LocalPosition: {x: 7, y: 1, z: 5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -855,8 +852,8 @@ Camera:
   m_GameObject: {fileID: 777416655}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0.49454582, b: 0.6313726, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
